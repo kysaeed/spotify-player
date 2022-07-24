@@ -22,7 +22,7 @@
             }
         </style>
 
-        <script src="https://sdk.scdn.co/spotify-player.js"></script>
+        <script src="https://sdk.scdn.co/spotify-player.js" defer></script>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="antialiased">

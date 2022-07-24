@@ -20,8 +20,6 @@ class PlayerController extends Controller
         $tokenInfo = json_decode($user->spotify_token, true);
 
 
-        $refresh = '';
-
         $client_id = config('spotify.client_id');
         $client_secret = config('spotify.client_secret');
         $auth = base64_encode($client_id . ':' . $client_secret);
@@ -42,7 +40,6 @@ class PlayerController extends Controller
         }
 
         $accessTokenInfo = json_decode($res->body(), true);
-
 
 
         $tokenInfo['access_token'] = $accessTokenInfo['access_token'];
