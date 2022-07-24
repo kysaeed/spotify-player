@@ -1,6 +1,6 @@
 import './bootstrap';
 
-import { createApp } from 'vue';
-import HelloWorld from './Components/HelloWorld.vue'
+import { createApp } from 'vue/dist/vue.esm-bundler.js';
+import App from './Components/AppComponent.vue'
 
-createApp(HelloWorld).mount('#app')
+createApp(App).mount('#app')
