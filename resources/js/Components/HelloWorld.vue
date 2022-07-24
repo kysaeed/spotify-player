@@ -7,7 +7,7 @@
             <button @click="add">add!</button>
         </div>
         <div style="padding: 30px;">
-            token: {{token}}
+            <!-- token: {{token}} -->
             <h1>Spotify Web Playback SDK Quick Start</h1>
             <button id="togglePlay">Toggle Play</button>
             <button id="testlog">Show LOG!</button>
@@ -27,10 +27,6 @@ export default {
             type: String,
             default: '',
         },
-        mydata: {
-            // type: String,
-            // default: 'xxx',
-        },
     },
 
     methods: {
@@ -39,8 +35,6 @@ export default {
         },
     },
     mounted() {
-console.log('@@@@@', this.token, this.mydata)
-// debugger
             // https://developer.spotify.com/documentation/web-playback-sdk/reference/#event-player-state-changed
 
             window.onSpotifyWebPlaybackSDKReady = () => {

@@ -19,7 +19,7 @@ class LoginControler extends Controller
         $query = http_build_query([
             'response_type' => 'code',
             'client_id' => config('spotify.client_id'),
-            'scope' => 'user-read-private user-read-email user-modify-playback-state',
+            'scope' => 'user-read-private user-read-email user-modify-playback-state streaming',
             'redirect_uri' => url('callback'),
             'state' => $state,
         ]);

@@ -16,8 +16,9 @@ use Illuminate\Support\Facades\Route;
 Route::group(['namespace' => 'App\Http\Controllers'], function() {
 
     Route::get('/', 'PlayerController@index')->name('top');
+    Route::get('guest', 'PlayerController@guest')->name('guest');
 
-    Route::get('login', 'LoginControler@login');
-    Route::get('callback', 'LoginControler@callback');
+    Route::get('login', 'LoginControler@login')->name('login');
+    Route::get('callback', 'LoginControler@callback')->name('callback');
 
 });
