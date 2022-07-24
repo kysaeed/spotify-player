@@ -9,4 +9,4 @@ export default {
 }
 </script>
 
-<style land="scss" scoped></style>  
+<style lang="css" scoped></style>
