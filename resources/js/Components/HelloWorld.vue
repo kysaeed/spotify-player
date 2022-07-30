@@ -4,7 +4,10 @@
             <!-- token: {{token}} -->
             <h1>Laravel Web Player</h1>
             <button id="prev" class="ui-button" >← P</button>
-            <button id="togglePlay" class="ui-button" >▶Toggle Play</button>
+            <button id="togglePlay" class="ui-button" >
+                <span v-if="isPause">▶ Play</span>
+                <span v-if="!isPause"> ‖ Pause</span>
+            </button>
             <button id="next" class="ui-button" >N →</button>
         </div>
         <div v-if="item" class="hello-box-child hello-box-child">
@@ -140,6 +143,7 @@ export default {
             //player_state_changed
             player.addListener('player_state_changed', (arg ) => {
                 console.log('player_state_changed', arg);
+                this.isPause = arg.paused
 
                 this.axios.get('/track-info', {
                     // device: device_id,
@@ -190,6 +194,7 @@ export default {
             item: null,
             state: null,
             player: null,
+            isPause: true,
         }
     },
 }
