@@ -21,4 +21,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function() {
     Route::get('login', 'LoginControler@login')->name('login');
     Route::get('callback', 'LoginControler@callback')->name('callback');
 
+    Route::post('device', 'PlayerController@device')->name('device');
+    Route::get('track-info', 'PlayerController@trackInfo')->name('track-info');
+
 });

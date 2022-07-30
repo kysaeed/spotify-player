@@ -26,10 +26,6 @@ class PlayerController extends Controller
         $res = Http::asForm()->acceptJson()->withHeaders([
             'Authorization' => 'Basic ' . $auth,
         ])->post('https://accounts.spotify.com/api/token', [
-            // 'code' => $code,
-            // 'redirect_uri' => url('callback'),
-            // 'grant_type' => 'authorization_code',
-
             'grant_type' => 'refresh_token',
             'refresh_token' => $tokenInfo['refresh_token'],
         ]);
@@ -56,5 +52,60 @@ class PlayerController extends Controller
     {
 
         return view('guest');
+    }
+
+    public function trackInfo(Request $request)
+    {
+
+        $user = Auth::user();
+        $info = json_decode($user->spotify_token, true);
+
+        $res = Http::withToken($info['access_token'])->get('https://api.spotify.com/v1/me/player/currently-playing');
+        if (!$res->successful()) {
+            echo 'get track error.....';
+            dd($res);
+        }
+
+        $track = json_decode($res->body(), true);
+
+
+        return $track;
+    }
+
+    public function device(Request $request)
+    {
+        $device_id = $request->input('device');
+
+        $user = Auth::user();
+        $info = json_decode($user->spotify_token, true);
+
+        $res = Http::withToken($info['access_token'])->get('https://api.spotify.com/v1/me/player/devices');
+        if (!$res->successful()) {
+            echo 'get device error.....';
+            dd($res);
+        }
+
+        $devices = json_decode($res->body(), true);
+        $device = null;
+        foreach ($devices['devices'] as $d) {
+            if ($d['id'] === $device_id) {
+                $device = $d;
+            }
+        }
+
+        if ($device) {
+
+            $res = Http::withToken($info['access_token'])->put('https://api.spotify.com/v1/me/player', [
+                'device_ids' => [$device['id']],
+                'play' => false,
+            ]);
+            if (!$res->successful()) {
+                echo 'device change error';
+                dd($res);
+            }
+
+        }
+
+        return $devices;
     }
 }

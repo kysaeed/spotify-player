@@ -19,7 +19,7 @@ class LoginControler extends Controller
         $query = http_build_query([
             'response_type' => 'code',
             'client_id' => config('spotify.client_id'),
-            'scope' => 'user-read-private user-read-email user-modify-playback-state streaming',
+            'scope' => 'user-read-private user-read-email user-modify-playback-state user-read-playback-state streaming',
             'redirect_uri' => url('callback'),
             'state' => $state,
         ]);
@@ -39,6 +39,7 @@ class LoginControler extends Controller
         $storedState = $request->session()->pull('state');
 
         if ($state !== $storedState) {
+            echo 'state error <br />';
             dd($state, $storedState);
         }
 
@@ -63,6 +64,7 @@ class LoginControler extends Controller
 
         $res = Http::withToken($info['access_token'])->get('https://api.spotify.com/v1/me');
         if (!$res->successful()) {
+            echo 'token req error <br />';
             dd($res);
         }
 
