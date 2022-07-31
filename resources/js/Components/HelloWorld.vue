@@ -28,6 +28,10 @@
 
             <div v-if="state">
                 <div>{{ progress }}</div>
+                <player-progress-bar
+                    :progress="progressBar.cycles"
+                    :track-info="state"
+                />
                 <input
                     v-model="progress"
                     class="progress"
@@ -70,7 +74,7 @@
 </template>
 
 <script>
-
+import PlayerProgressBar from './PlayerProgressBar.vue'
 // import { nextTick } from 'vue'
 import anime from 'animejs'
 export default {
@@ -82,6 +86,10 @@ export default {
     //         default: '',
     //     },
     // },
+
+    components: {
+        PlayerProgressBar,
+    },
 
     methods: {
         startInterval() {
@@ -227,7 +235,7 @@ export default {
                                 //   }
                                 });
 
-console.log('this.currrentAnimatin', this.currrentAnimatin)
+// console.log('this.currrentAnimatin', this.currrentAnimatin)
 
                             } else {
                                 if (this.currrentAnimatin) {
