@@ -31,6 +31,7 @@
                 <player-progress-bar
                     :progress="progressBar.cycles"
                     :track-info="state"
+                    @seek="onSeekByBar"
                 />
                 <input
                     v-model="progress"
@@ -104,6 +105,11 @@ export default {
                 });
             }
             cb()
+        },
+        onSeekByBar(t) {
+            this.progress = t
+            console.log('onSeek ******', this.progress)
+            this.player.seek(this.progress)
         },
         onSeek(t) {
             console.log('onSeek ******', this.progress)
