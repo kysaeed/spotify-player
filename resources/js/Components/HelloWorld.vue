@@ -27,6 +27,7 @@
             </div>
 
             <div v-if="state">
+                <div>{{ progress }}</div>
                 <input
                     v-model="progress"
                     class="progress"
@@ -38,14 +39,17 @@
 
                 <div>{{p}}</div>
                 <div>{{progressBar.cycles}}</div>
+                {{state.duration}}
                 <input
-                    v-model="progressBar.cycles"
+                    :value="progressBar.cycles"
                     class="progress"
                     type="range"
                     min="0"
                     :max="state.duration"
+                    @change="onSeek"
                 />
-                <div>{{ toTime(progress) }} : {{ toTime(state.duration) }}</div>
+                <div>{{ toTime(progressBar.cycles) }} : {{ toTime(state.duration) }}</div>
+                <div>{{ (progressBar.cycles) }} : {{ (state.duration) }}</div>
                 <!-- <div>{{ (progress) }} : {{ (state.duration) }}</div> -->
             </div>
         </div>
@@ -84,7 +88,6 @@ export default {
             const cb = () => {
                 this.player.getCurrentState().then((s) => {
                     window.setTimeout(cb, 1000);
-                    this.state = s
                     if (s) {
                         this.progress = s.position
                     } else {
@@ -92,12 +95,29 @@ export default {
                     }
                 });
             }
-
             cb()
         },
         onSeek(t) {
             console.log('onSeek ******', this.progress)
             this.player.seek(this.progress)
+
+            // if (this.currrentAnimatin) {
+            //     this.currrentAnimatin.remove(this.progressBar)
+            // }
+            // this.progressBar.cycles = this.progress
+            // this.currrentAnimatin = anime({
+            //     targets: this.progressBar,
+            //     charged: '100%',
+            //     cycles: this.state.duration,
+            //     round: 1,
+            //     duration: this.state.duration,
+            //     easing: 'linear',
+            // //   update: function() {
+            // //     // logEl.innerHTML = JSON.stringify(progressBar);
+            // //   }
+            // });
+            // this.currrentAnimatin.play()
+
         },
         toTime(ms) {
             const zeroPad = (n) => {
@@ -114,12 +134,13 @@ export default {
             this.player.togglePlay();
         },
         next() {
-            this.progress = 0
+            // this.progress = 0
             this.player.nextTrack();
         },
         prev() {
-            this.progress = 0
+            // this.progress = 0
             this.player.nextTrack();
+
 
         },
 
@@ -178,44 +199,56 @@ export default {
 
                 //player_state_changed
                 player.addListener('player_state_changed', (arg) => {
-                    console.log('player_state_changed', arg);
-                    this.isPause = arg.paused
 
-                    if (!this.isPause) {
-                        if (this.currrentAnimatin) {
-                            this.currrentAnimatin.remove(this.progressBar)
+                    // this.player.getCurrentState().then((s) => {
+                        // window.setTimeout(cb, 1000);
+                        const s = arg
+                        if (s) {
+                            this.progress = s.position
 
-                        }
-                        this.progressBar.cycles = arg.position
-                        this.currrentAnimatin = anime({
-                            targets: this.progressBar,
-                            charged: '100%',
-                            cycles: arg.duration,
-                            round: 1,
-                            duration: arg.duration,
-                            easing: 'linear',
-                        //   update: function() {
-                        //     // logEl.innerHTML = JSON.stringify(progressBar);
-                        //   }
-                        });
+                            this.state = s
+                            this.progressBar.cycles = s.position
+                            this.isPause = s.paused
+
+                            if (!this.isPause) {
+                                if (this.currrentAnimatin) {
+                                    this.currrentAnimatin.remove(this.progressBar)
+                                }
+                                this.progressBar.cycles = s.position
+                                this.currrentAnimatin = anime({
+                                    targets: this.progressBar,
+                                    charged: '100%',
+                                    cycles: arg.duration,
+                                    round: 1,
+                                    duration: arg.duration - s.position,
+                                    easing: 'linear',
+                                //   update: function() {
+                                //     // logEl.innerHTML = JSON.stringify(progressBar);
+                                //   }
+                                });
 
 console.log('this.currrentAnimatin', this.currrentAnimatin)
 
-                    } else {
-                        if (this.currrentAnimatin) {
-                            this.currrentAnimatin.pause()
-                        }
-                    }
+                            } else {
+                                if (this.currrentAnimatin) {
+                                    this.currrentAnimatin.pause()
+                                }
+                            }
+                            console.log('player_state_changed', arg);
 
-                    this.axios.get('/track-info', {
-                        // device: device_id,
-                    }).then((res) => {
-                        console.log(res.data)
-                        if (res.data) {
-                            this.item = res.data.item
-                        }
-                    })
+                            this.axios.get('/track-info', {
+                                // device: device_id,
+                            }).then((res) => {
+                                console.log(res.data)
+                                if (res.data) {
+                                    this.item = res.data.item
+                                }
+                            })
 
+
+
+                        }
+                    // });
 
                 });
 
@@ -243,7 +276,7 @@ console.log('this.currrentAnimatin', this.currrentAnimatin)
     },
     beforeDestroy() {
         if (this.player) {
-            this.player.disconnect()
+            // this.player.disconnect()
         }
     },
     data() {
