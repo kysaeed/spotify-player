@@ -3,12 +3,12 @@
         <div class="hello-box-child">
             <!-- token: {{token}} -->
             <h1>Laravel Web Player</h1>
-            <button id="prev" class="ui-button" >← P</button>
-            <button id="togglePlay" class="ui-button" >
+            <button @click="prev" class="ui-button" >← P</button>
+            <button @click="play" class="ui-button" >
                 <span v-if="isPause">▶ Play</span>
                 <span v-if="!isPause"> ‖ Pause</span>
             </button>
-            <button id="next" class="ui-button" >N →</button>
+            <button @click="next" class="ui-button" >N →</button>
         </div>
         <div v-if="item" class="hello-box-child hello-box-child">
             <div class="track-info">
@@ -35,18 +35,31 @@
                     :max="state.duration"
                     @change="onSeek"
                 />
+
+                <div>{{p}}</div>
+                <div>{{progressBar.cycles}}</div>
+                <input
+                    v-model="progressBar.cycles"
+                    class="progress"
+                    type="range"
+                    min="0"
+                    :max="state.duration"
+                />
                 <div>{{ toTime(progress) }} : {{ toTime(state.duration) }}</div>
                 <!-- <div>{{ (progress) }} : {{ (state.duration) }}</div> -->
             </div>
         </div>
+
+<!--
         <div class="hello-box-child">
             <h1>state</h1>
             <div v-if="state">
+                <pre>{{ state }}</pre>
             </div>
         </div>
-
+ -->
         <div>
-            <button id="testlog">Show LOG!</button>
+            <button @click="test">Show LOG!</button>
         </div>
 
     </div>
@@ -54,31 +67,30 @@
 
 <script>
 
-
+// import { nextTick } from 'vue'
+import anime from 'animejs'
 export default {
     name: 'hello-world',
 
-    props: {
-        token: {
-            type: String,
-            default: '',
-        },
-    },
+    // props: {
+    //     token: {
+    //         type: String,
+    //         default: '',
+    //     },
+    // },
 
     methods: {
-        add() {
-            this.a++
-        },
         startInterval() {
             const cb = () => {
                 this.player.getCurrentState().then((s) => {
-                    // debugger
-                    // console.log('***', s)
                     window.setTimeout(cb, 1000);
                     this.state = s
-                    this.progress = s.position
+                    if (s) {
+                        this.progress = s.position
+                    } else {
+                        this.progress = 0
+                    }
                 });
-
             }
 
             cb()
@@ -98,85 +110,136 @@ export default {
             return `${zeroPad(m)}:${zeroPad(s)}`
         },
 
+        play() {
+            this.player.togglePlay();
+        },
+        next() {
+            this.progress = 0
+            this.player.nextTrack();
+        },
+        prev() {
+            this.progress = 0
+            this.player.nextTrack();
+
+        },
+
+        test() {
+            this.player.getCurrentState().then((s) => {
+                console.log('***', s)
+            });
+
+        },
+
     },
     mounted() {
-        // https://developer.spotify.com/documentation/web-playback-sdk/reference/#event-player-state-changed
+
+// console.log(res)
+// debugger
+
+        // this.token = res.data.token
 
         window.onSpotifyWebPlaybackSDKReady = () => {
-            const token = this.token
-            const player = new Spotify.Player({
-                name: 'Laravel Web Player',
-                getOAuthToken: cb => { cb(token); },
-                volume: 0.8
-            });
-            this.player = player
-
-            // Ready
-            player.addListener('ready', ({ device_id }) => {
-                console.log('Ready with Device ID', device_id);
-
-                this.axios.post('/device', {
-                    device: device_id,
-                }).then((res) => {
-                    console.log(res)
-                    this.startInterval()
-                })
-            });
-
-            // Not Ready
-            player.addListener('not_ready', ({ device_id }) => {
-                console.log('Device ID has gone offline', device_id);
-            });
-
-            player.addListener('initialization_error', ({ message }) => {
-                console.error(message);
-            });
-
-            player.addListener('authentication_error', ({ message }) => {
-                console.error(message);
-            });
-
-            player.addListener('account_error', ({ message }) => {
-                console.error(message);
-            });
-
-            //player_state_changed
-            player.addListener('player_state_changed', (arg ) => {
-                console.log('player_state_changed', arg);
-                this.isPause = arg.paused
-
-                this.axios.get('/track-info', {
-                    // device: device_id,
-                }).then((res) => {
-                    console.log(res.data)
-                    if (res.data) {
-                        this.item = res.data.item
-                    }
-                })
-
-
-            });
-
-            document.getElementById('togglePlay').onclick = function() {
-                player.togglePlay();
-            };
-
-
-            document.getElementById('prev').onclick = function() {
-                player.previousTrack();
-            };
-            document.getElementById('next').onclick = function() {
-                player.nextTrack();
-            };
-
-            document.getElementById('testlog').onclick = function() {
-                player.getCurrentState().then((s) => {
-                    console.log('***', s)
+            const a = (token) => {
+                const player = new Spotify.Player({
+                    name: 'Laravel Web Player',
+                    getOAuthToken: cb => { cb(token); },
+                    volume: 0.8
                 });
-            };
+                this.player = player
 
-            player.connect();
+                // Ready
+                player.addListener('ready', ({ device_id }) => {
+                    console.log('Ready with Device ID', device_id);
+
+                    this.axios.post('/device', {
+                        device: device_id,
+                    }).then((res) => {
+                        console.log(res)
+                        this.startInterval()
+                    })
+                });
+
+                // Not Ready
+                player.addListener('not_ready', ({ device_id }) => {
+                    console.log('Device ID has gone offline', device_id);
+                });
+
+                player.addListener('initialization_error', ({ message }) => {
+                    console.error(message);
+                });
+
+                player.addListener('authentication_error', ({ message }) => {
+                    console.error(message);
+                });
+
+                player.addListener('account_error', ({ message }) => {
+                    console.error(message);
+                });
+
+                //player_state_changed
+                player.addListener('player_state_changed', (arg) => {
+                    console.log('player_state_changed', arg);
+                    this.isPause = arg.paused
+
+                    if (!this.isPause) {
+                        if (this.currrentAnimatin) {
+                            this.currrentAnimatin.remove(this.progressBar)
+
+                        }
+                        this.progressBar.cycles = arg.position
+                        this.currrentAnimatin = anime({
+                            targets: this.progressBar,
+                            charged: '100%',
+                            cycles: arg.duration,
+                            round: 1,
+                            duration: arg.duration,
+                            easing: 'linear',
+                        //   update: function() {
+                        //     // logEl.innerHTML = JSON.stringify(progressBar);
+                        //   }
+                        });
+
+console.log('this.currrentAnimatin', this.currrentAnimatin)
+
+                    } else {
+                        if (this.currrentAnimatin) {
+                            this.currrentAnimatin.pause()
+                        }
+                    }
+
+                    this.axios.get('/track-info', {
+                        // device: device_id,
+                    }).then((res) => {
+                        console.log(res.data)
+                        if (res.data) {
+                            this.item = res.data.item
+                        }
+                    })
+
+
+                });
+
+                // document.getElementById('testlog').onclick = function() {
+                //     player.getCurrentState().then((s) => {
+                //         console.log('***', s)
+                //     });
+                // };
+
+                player.connect();
+            }
+
+
+            this.axios.post('/access-token', {
+                // device: device_id,
+            }).then((res) => {
+                this.token = res.data.token
+                a(this.token)
+            })
         }
+
+
+        // https://developer.spotify.com/documentation/web-playback-sdk/reference/#event-player-state-changed
+
     },
     beforeDestroy() {
         if (this.player) {
@@ -188,6 +251,13 @@ export default {
             responseType: 'json',
         });
 
+
+        const progressBar = {
+            charged: '0%',
+            cycles: 120
+        }
+
+
         return {
             progress: 0,
             axios,
@@ -195,6 +265,13 @@ export default {
             state: null,
             player: null,
             isPause: true,
+            p: {
+                x:0,
+                y:0,
+            },
+            progressBar,
+            currrentAnimatin: null,
+            toekn: null,
         }
     },
 }
@@ -216,10 +293,11 @@ export default {
 }
 
 .ui-button {
+    height: 42px;
     position: relative;
     padding: 8px 12px;
     margin: 4px;
-    font-size: 1.4rem;
+    // font-size: 1.4em;
 }
 
 .track-info {

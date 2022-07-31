@@ -17,6 +17,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function() {
 
     Route::get('/', 'PlayerController@index')->name('top');
     Route::get('guest', 'PlayerController@guest')->name('guest');
+    Route::post('access-token', 'LoginControler@accessToken')->name('access-token');
 
     Route::get('login', 'LoginControler@login')->name('login');
     Route::get('callback', 'LoginControler@callback')->name('callback');

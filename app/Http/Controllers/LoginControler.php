@@ -32,6 +32,43 @@ class LoginControler extends Controller
         return redirect($url);
     }
 
+    public function accessToken(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return [];
+        }
+
+        $tokenInfo = json_decode($user->spotify_token, true);
+
+        $client_id = config('spotify.client_id');
+        $client_secret = config('spotify.client_secret');
+        $auth = base64_encode($client_id . ':' . $client_secret);
+        $res = Http::asForm()->acceptJson()->withHeaders([
+            'Authorization' => 'Basic ' . $auth,
+        ])->post('https://accounts.spotify.com/api/token', [
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $tokenInfo['refresh_token'],
+        ]);
+
+        if (!$res->successful()) {
+            Auth::logout();
+            return redirect()->route(('guest'));
+        }
+
+        $accessTokenInfo = json_decode($res->body(), true);
+
+
+        $tokenInfo['access_token'] = $accessTokenInfo['access_token'];
+
+        $user->spotify_token = json_encode($tokenInfo);
+        $user->save();
+
+        return [
+            'token' => $tokenInfo['access_token'],
+        ];
+    }
+
     public function callback(Request $request)
     {
         $code = $request->input('code');

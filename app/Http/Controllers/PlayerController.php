@@ -11,7 +11,6 @@ class PlayerController extends Controller
 
     public function index(Request $request)
     {
-
         $user = Auth::user();
         if (!$user) {
             return redirect()->route('guest');
