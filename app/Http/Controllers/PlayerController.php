@@ -3,21 +3,30 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Auth;
-use Http;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+
+use App\Services\SpotifyService;
 
 class PlayerController extends Controller
 {
 
-    public function index(Request $request)
+    public function index(Request $request, SpotifyService $spotify)
     {
+
         $user = Auth::user();
         if (!$user) {
             return redirect()->route('guest');
         }
+        $spotifyToken = $user->spotifyToken;
+        if (is_null($spotifyToken)) {
+            return redirect()->route('guest');
+        }
+
+        $spotify->refreshAccessToken($user);
+
 
         $tokenInfo = json_decode($user->spotify_token, true);
-
 
         $client_id = config('spotify.client_id');
         $client_secret = config('spotify.client_secret');
@@ -26,7 +35,7 @@ class PlayerController extends Controller
             'Authorization' => 'Basic ' . $auth,
         ])->post('https://accounts.spotify.com/api/token', [
             'grant_type' => 'refresh_token',
-            'refresh_token' => $tokenInfo['refresh_token'],
+            'refresh_token' => $spotifyToken->refresh_token,
         ]);
 
         if (!$res->successful()) {
@@ -35,15 +44,14 @@ class PlayerController extends Controller
         }
 
         $accessTokenInfo = json_decode($res->body(), true);
+        $spotifyToken->access_token = $accessTokenInfo['access_token'];
 
-
-        $tokenInfo['access_token'] = $accessTokenInfo['access_token'];
 
         $user->spotify_token = json_encode($tokenInfo);
-        $user->save();
+        $spotifyToken->save();
 
         return view('content', [
-            'token' => $tokenInfo['access_token'],
+            'token' => $spotifyToken->access_token,
         ]);
     }
 
@@ -57,9 +65,13 @@ class PlayerController extends Controller
     {
 
         $user = Auth::user();
-        $info = json_decode($user->spotify_token, true);
 
-        $res = Http::withToken($info['access_token'])->get('https://api.spotify.com/v1/me/player/currently-playing');
+        $token = $user->spotifyToken;
+        if (is_null($token)) {
+            return 'has not token';
+        }
+
+        $res = Http::withToken($token->access_token)->get('https://api.spotify.com/v1/me/player/currently-playing');
         if (!$res->successful()) {
             echo 'get track error.....';
             dd($res);
@@ -76,9 +88,13 @@ class PlayerController extends Controller
         $device_id = $request->input('device');
 
         $user = Auth::user();
-        $info = json_decode($user->spotify_token, true);
+        $token = $user->spotifyToken;
+        if (is_null($token)) {
+            return 'has not token';
+        }
 
-        $res = Http::withToken($info['access_token'])->get('https://api.spotify.com/v1/me/player/devices');
+        // $info = json_decode($user->spotify_token, true);
+        $res = Http::withToken($token->access_token)->get('https://api.spotify.com/v1/me/player/devices');
         if (!$res->successful()) {
             echo 'get device error.....';
             dd($res);
@@ -94,7 +110,7 @@ class PlayerController extends Controller
 
         if ($device) {
 
-            $res = Http::withToken($info['access_token'])->put('https://api.spotify.com/v1/me/player', [
+            $res = Http::withToken($token->access_token)->put('https://api.spotify.com/v1/me/player', [
                 'device_ids' => [$device['id']],
                 'play' => false,
             ]);

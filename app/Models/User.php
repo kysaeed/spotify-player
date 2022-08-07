@@ -12,12 +12,18 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    public function spotifyToken()
+    {
+        return $this->hasOne(SpotifyToken::class);
+    }
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
+        'key',
         'name',
         'email',
         'password',

@@ -33,16 +33,10 @@
                     :track-info="state"
                     @seek="onSeekByBar"
                 />
-                <input
-                    v-model="progress"
-                    class="progress"
-                    type="range"
-                    min="0"
-                    :max="state.duration"
-                    @change="onSeek"
-                />
+                <div>{{ toTime(progressBar.cycles) }} : {{ toTime(state.duration) }}</div>
 
-                <div>{{p}}</div>
+<!--
+
                 <div>{{progressBar.cycles}}</div>
                 {{state.duration}}
                 <input
@@ -53,9 +47,21 @@
                     :max="state.duration"
                     @change="onSeek"
                 />
-                <div>{{ toTime(progressBar.cycles) }} : {{ toTime(state.duration) }}</div>
                 <div>{{ (progressBar.cycles) }} : {{ (state.duration) }}</div>
+
+
+-->
                 <!-- <div>{{ (progress) }} : {{ (state.duration) }}</div> -->
+
+
+                <input
+                    v-model="progress"
+                    class="progress"
+                    type="range"
+                    min="0"
+                    :max="state.duration"
+                    @change="onSeek"
+                />
             </div>
         </div>
 

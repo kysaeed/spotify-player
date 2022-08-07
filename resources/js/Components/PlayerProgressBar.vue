@@ -3,8 +3,9 @@
         ref="progress"
         class="progress-bar"
         @mousedown.left.prevent="onMouseDown"
-        @mouseup.left.prevent="onMouseUp"
+        @mouseup.left="onMouseUp"
         @mousemove="onMouseMove"
+        draggable
     >
         <div>
             {{ progress }} / {{this.trackInfo.duration}}
@@ -56,12 +57,12 @@ export default {
                 return {}
             }
 
-            let left = this.progress / this.trackInfo.duration * 100
-            if (left > 100) {
-                left = 100
+            let width = this.progress / this.trackInfo.duration * 100
+            if (width > 100) {
+                width = 100
             }
             return {
-                width: `${left}%`
+                width: `${width}%`
             }
         },
         handleStyle() {
@@ -82,6 +83,17 @@ export default {
         },
     },
 
+    watch: {
+        trackInfo() {
+            this.isGrab = false
+        },
+    },
+
+    mounted() {
+        // document.addEventListener('mouseup', this.onMouseUp)
+        // document.addEventListener('mousemove', this.onMouseMove)
+    },
+
     methods: {
         onMouseDown(e) {
             console.log('xxxs', e)
@@ -94,6 +106,10 @@ export default {
             this.upd(this.currentPoint.x)
         },
         onMouseUp() {
+            if (!this.isGrab) {
+                return
+            }
+
             this.isGrab = false
             if (this.trackInfo) {
                 if (this.trackInfo.duration) {
@@ -146,6 +162,10 @@ export default {
     height: 30px;
     border: 1px solid black;
     border-radius: 4px;
+    cursor: ew-resize;
+    &:hover {
+        background-color: #e9e9f6;
+    }
 
     &-fill {
         position: absolute;
@@ -153,7 +173,7 @@ export default {
         top: 0px;
         height: 100%;
         width: 0%;
-        background: #0000e09f;
+        background: #2626ff9f;
         border-radius: 4px;
     }
     &-handle {
