@@ -30,7 +30,8 @@
                 <div>{{ progress }}</div>
                 <player-progress-bar
                     :progress="progressBar.cycles"
-                    :track-info="state"
+                    :duration="state.duration"
+                    :is-pause="isPause"
                     @seek="onSeekByBar"
                 />
                 <div>{{ toTime(progressBar.cycles) }} : {{ toTime(state.duration) }}</div>
@@ -48,9 +49,8 @@
                     @change="onSeek"
                 />
                 <div>{{ (progressBar.cycles) }} : {{ (state.duration) }}</div>
-
-
 -->
+
                 <!-- <div>{{ (progress) }} : {{ (state.duration) }}</div> -->
 
 
@@ -60,7 +60,7 @@
                     type="range"
                     min="0"
                     :max="state.duration"
-                    @change="onSeek"
+                    @change="onSeekDebug"
                 />
             </div>
         </div>
@@ -83,7 +83,8 @@
 <script>
 import PlayerProgressBar from './PlayerProgressBar.vue'
 // import { nextTick } from 'vue'
-import anime from 'animejs'
+// import anime from 'animejs'
+
 export default {
     name: 'hello-world',
 
@@ -117,27 +118,9 @@ export default {
             console.log('onSeek ******', this.progress)
             this.player.seek(this.progress)
         },
-        onSeek(t) {
+        onSeekDebug(t) {
             console.log('onSeek ******', this.progress)
             this.player.seek(this.progress)
-
-            // if (this.currrentAnimatin) {
-            //     this.currrentAnimatin.remove(this.progressBar)
-            // }
-            // this.progressBar.cycles = this.progress
-            // this.currrentAnimatin = anime({
-            //     targets: this.progressBar,
-            //     charged: '100%',
-            //     cycles: this.state.duration,
-            //     round: 1,
-            //     duration: this.state.duration,
-            //     easing: 'linear',
-            // //   update: function() {
-            // //     // logEl.innerHTML = JSON.stringify(progressBar);
-            // //   }
-            // });
-            // this.currrentAnimatin.play()
-
         },
         toTime(ms) {
             const zeroPad = (n) => {
@@ -227,33 +210,9 @@ export default {
                             this.progress = s.position
 
                             this.state = s
-                            this.progressBar.cycles = s.position
+                            // this.progressBar.cycles = s.position
                             this.isPause = s.paused
 
-                            if (!this.isPause) {
-                                if (this.currrentAnimatin) {
-                                    this.currrentAnimatin.remove(this.progressBar)
-                                }
-                                this.progressBar.cycles = s.position
-                                this.currrentAnimatin = anime({
-                                    targets: this.progressBar,
-                                    charged: '100%',
-                                    cycles: arg.duration,
-                                    round: 1,
-                                    duration: arg.duration - s.position,
-                                    easing: 'linear',
-                                //   update: function() {
-                                //     // logEl.innerHTML = JSON.stringify(progressBar);
-                                //   }
-                                });
-
-// console.log('this.currrentAnimatin', this.currrentAnimatin)
-
-                            } else {
-                                if (this.currrentAnimatin) {
-                                    this.currrentAnimatin.pause()
-                                }
-                            }
                             console.log('player_state_changed', arg);
 
                             this.axios.get('/track-info', {
@@ -264,9 +223,6 @@ export default {
                                     this.item = res.data.item
                                 }
                             })
-
-
-
                         }
                     // });
 

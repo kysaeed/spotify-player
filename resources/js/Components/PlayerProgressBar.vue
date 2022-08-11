@@ -8,12 +8,12 @@
         draggable
     >
         <div>
-            {{ progress }} / {{this.trackInfo.duration}}
+            {{ progress }} / {{this.duration}}
         </div>
 
         <div
+            ref="bar"
             class="progress-bar-fill"
-            :style="barStyle"
         ></div>
 
         <div
@@ -29,35 +29,50 @@
 import anime from 'animejs'
 
 export default {
+    name: 'player-progress-bar',
     props: {
         progress: {
             type: Number,
             default: 0,
         },
-        trackInfo: {
-            type: Object,
-            default: () => ({}),
+        duration: {
+            type: Number,
+            default: null,
         },
         isPause: {
             type: Boolean,
             default: false,
         },
-
     },
 
-    name: 'player-progress-bar',
+    watch: {
+        progress(value) {
+            console.log('!!!', value)
+        },
+        duration(value) {
+            this.setDuration(value)
+        },
+        isPause(value) {
+            if (value) {
+                this.animation.pause()
+            } else {
+                this.animation.play()
+            }
+        },
+    },
 
     computed: {
         barStyle() {
-            if (!this.trackInfo) {
+
+            if (!this.duration) {
                 return {}
             }
 
-            if (!this.trackInfo.duration) {
-                return {}
+            let width = 0
+            if (this.duration) {
+                width = this.progress / this.duration * 100
             }
 
-            let width = this.progress / this.trackInfo.duration * 100
             if (width > 100) {
                 width = 100
             }
@@ -66,12 +81,10 @@ export default {
             }
         },
         handleStyle() {
-            if (!this.trackInfo) {
-                return {}
-            }
-
-            if (!this.trackInfo.duration) {
-                return {}
+            if (!this.duration) {
+                return {
+                    display: 'none',
+                }
             }
             let left = this.to
             if (left > 100) {
@@ -83,15 +96,21 @@ export default {
         },
     },
 
-    watch: {
-        trackInfo() {
-            this.isGrab = false
-        },
-    },
-
     mounted() {
+        anime.suspendWhenDocumentHidden = false
+
+        // window.addEventListener('focus', this.adjustPorgress)
+
         // document.addEventListener('mouseup', this.onMouseUp)
         // document.addEventListener('mousemove', this.onMouseMove)
+        this.animation = anime({
+            targets: this.$refs.bar,
+            width: [`0%`, '100%'],
+            // round: 1,
+            duration: this.duration,
+            easing: 'linear',
+        })
+        this.seek(this.progress)
     },
 
     methods: {
@@ -103,7 +122,7 @@ export default {
                 x: e.offsetX,
                 y: e.offsetY,
             }
-            this.upd(this.currentPoint.x)
+            this.setProgressPosition(this.currentPoint.x)
         },
         onMouseUp() {
             if (!this.isGrab) {
@@ -111,12 +130,11 @@ export default {
             }
 
             this.isGrab = false
-            if (this.trackInfo) {
-                if (this.trackInfo.duration) {
+            if (this.duration) {
+                const d = this.duration * (this.to / 100)
 
-                    const d = this.trackInfo.duration * (this.to / 100)
-                    this.$emit('seek', d)
-                }
+                // todo: メンバのanimeを更新
+                this.seek(d)
             }
         },
 
@@ -129,25 +147,39 @@ export default {
                 x: e.offsetX,
                 y: e.offsetY,
             }
-            // console.log("touch start:%d,%d", e.offsetX, e.offsetY);
-
-            this.upd(this.currentPoint.x)
+            this.setProgressPosition(this.currentPoint.x)
         },
 
-        upd(x) {
+        setProgressPosition(x) {
             const r = this.$refs.progress.getBoundingClientRect()
-            // console.log(x, r)
             this.to = x / r.width * 100
         },
+        setDuration() {
+            this.animation.remove(this.$refs.bar)
+            this.animation = anime({
+                targets: this.$refs.bar,
+                width: [`0%`, '100%'],
+                // round: 1,
+                duration: this.duration,
+                easing: 'linear',
+            })
 
+            this.seek(this.progress)
+        },
+
+        seek(position) {
+            this.animation.pause()
+            this.animation.seek(position)
+            this.animation.play()
+            this.$emit('seek', position)
+        },
     },
 
     data() {
-        this.trackInfo
 
         return {
+            animation: null,
             isGrab: false,
-            duration: 0,
             currentPoint: null,
             to: 0,
         }
