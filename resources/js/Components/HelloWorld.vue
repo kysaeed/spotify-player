@@ -144,84 +144,77 @@ export default {
 
         // this.token = res.data.token
 
-        window.onSpotifyWebPlaybackSDKReady = () => {
-            const a = (token) => {
-                const player = new Spotify.Player({
-                    name: 'Laravel Web Player',
-                    getOAuthToken: cb => { cb(token); },
-                    volume: 0.8
-                });
-                this.player = player
-
-                // Ready
-                player.addListener('ready', ({ device_id }) => {
-                    console.log('Ready with Device ID', device_id);
-
-                    this.axios.post('/device', {
-                        device: device_id,
-                    }).then((res) => {
-                        console.log(res)
-                        this.startInterval()
-                    })
-                });
-
-                // Not Ready
-                player.addListener('not_ready', ({ device_id }) => {
-                    console.log('Device ID has gone offline', device_id);
-                });
-
-                player.addListener('initialization_error', ({ message }) => {
-                    console.error(message);
-                });
-
-                player.addListener('authentication_error', ({ message }) => {
-                    console.error(message);
-                });
-
-                player.addListener('account_error', ({ message }) => {
-                    console.error(message);
-                });
-
-                //player_state_changed
-                player.addListener('player_state_changed', (arg) => {
-                    const s = arg
-                    if (s) {
-                        this.progress = s.position
-
-                        this.state = s
-                        this.progressBar.cycles = s.position
-                        this.isPause = s.paused
-
-                        console.log('player_state_changed', arg);
-
-                        this.axios.get('/track-info', {
-                            // device: device_id,
-                        }).then((res) => {
-                            console.log(res.data)
-                            if (res.data) {
-                                this.item = res.data.item
-                            }
-                        })
-                    }
-
-                });
-
-                // document.getElementById('testlog').onclick = function() {
-                //     player.getCurrentState().then((s) => {
-                //         console.log('***', s)
-                //     });
-                // };
-
-                player.connect();
-            }
-
-
-            this.axios.post('/access-token', {
-                // device: device_id,
-            }).then((res) => {
+        const requestToken = (cb) => {
+            this.axios.post('/access-token', {}).then((res) => {
                 this.token = res.data.token
-                a(this.token)
+                cb(res.data.token)
+            }).catch(() => {
+                cb()
             })
+        }
+
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            const player = new Spotify.Player({
+                name: 'Laravel Web Player',
+                getOAuthToken: requestToken,
+                volume: 0.8
+            });
+            this.player = player
+
+            // Ready
+            player.addListener('ready', ({ device_id }) => {
+                console.log('Ready with Device ID', device_id);
+
+                this.axios.post('/device', {
+                    device: device_id,
+                }).then((res) => {
+                    console.log(res)
+                    this.startInterval()
+                })
+            });
+
+            // Not Ready
+            player.addListener('not_ready', ({ device_id }) => {
+                console.log('Device ID has gone offline', device_id);
+            });
+
+            player.addListener('initialization_error', ({ message }) => {
+                console.error(message);
+            });
+
+            player.addListener('authentication_error', ({ message }) => {
+                console.error(message);
+            });
+
+            player.addListener('account_error', ({ message }) => {
+                console.error(message);
+            });
+
+            //player_state_changed
+            player.addListener('player_state_changed', (arg) => {
+                const s = arg
+                if (s) {
+                    this.progress = s.position
+
+                    this.state = s
+                    this.progressBar.cycles = s.position
+                    this.isPause = s.paused
+
+                    console.log('player_state_changed', arg);
+
+                    this.axios.get('/track-info', {
+                        // device: device_id,
+                    }).then((res) => {
+                        console.log(res.data)
+                        if (res.data) {
+                            this.item = res.data.item
+                        }
+                    })
+                }
+
+            });
+
+            player.connect();
         }
 
 

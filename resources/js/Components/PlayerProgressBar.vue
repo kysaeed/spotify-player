@@ -4,7 +4,7 @@
         class="progress-bar"
         @mousedown.left.prevent="onMouseDown"
     >
-        <div>{{ modelValue }} / {{ duration }}</div>
+        <!-- <div>{{ modelValue }} / {{ duration }}</div> -->
         <div
             ref="bar"
             class="progress-bar-fill"
