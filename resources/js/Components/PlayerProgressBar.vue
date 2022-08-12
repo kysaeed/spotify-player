@@ -4,7 +4,6 @@
         class="progress-bar"
         @mousedown.left.prevent="onMouseDown"
     >
-        <!-- <div>{{ modelValue }} / {{ duration }}</div> -->
         <div
             ref="bar"
             class="progress-bar-fill"
@@ -17,6 +16,10 @@
             :style="handleStyle"
         ></div>
 
+        <div class="progress-bar-time">
+            <div>{{ toTime(this.time.ms) }}</div>
+            <div>{{ toTime(this.duration) }}</div>
+        </div>
     </div>
 </template>
 
@@ -75,6 +78,12 @@ export default {
                 width: `${left}%`
             }
         },
+        progressTime() {
+            return 'PT'
+        },
+        durationTime() {
+            return 'DT'
+        },
     },
 
     mounted() {
@@ -95,11 +104,14 @@ export default {
     methods: {
         createAnimation() {
             if (this.animation) {
-                this.animation.remove(this.$refs.bar)
+                this.animation.remove([this.$refs.bar, this.time])
             }
+            this.time = { ms: 0, }
+
             this.animation = anime({
-                targets: this.$refs.bar,
+                targets: [this.$refs.bar, this.time],
                 width: [`0%`, '100%'],
+                ms: this.duration,
                 // round: 1,
                 duration: this.duration,
                 easing: 'linear',
@@ -114,10 +126,12 @@ export default {
         onMouseDown(e) {
             this.isGrab = true
 
+            const r = this.$refs.progress.getBoundingClientRect()
             this.currentPoint = {
-                x: e.offsetX,
-                y: e.offsetY,
+                x: e.pageX - r.x + window.pageXOffset,
+                y: e.pageY - r.y + window.pageYOffset,
             }
+
             this.setProgressPosition(this.currentPoint.x)
         },
         onMouseUp(e) {
@@ -137,9 +151,10 @@ export default {
             }
 
             e.preventDefault()
+            const r = this.$refs.progress.getBoundingClientRect()
             this.currentPoint = {
-                x: e.offsetX,
-                y: e.offsetY,
+                x: e.pageX - r.x + window.pageXOffset,
+                y: e.pageY - r.y + window.pageYOffset,
             }
             this.setProgressPosition(this.currentPoint.x)
         },
@@ -148,11 +163,25 @@ export default {
             const r = this.$refs.progress.getBoundingClientRect()
             this.to = x / r.width * 100
         },
+
+        toTime(ms) {
+            const zeroPad = (n) => {
+                return `${n}`.padStart(2, '0')
+            }
+            let s = parseInt(ms / 1000) || 0
+            const m = parseInt(s / 60) || 0
+            s %= 60
+
+            return `${zeroPad(m)}:${zeroPad(s)}`
+        },
     },
 
     data() {
 
         return {
+            time: {
+                ms: 0,
+            },
             animation: null,
             isGrab: false,
             currentPoint: null,
@@ -163,15 +192,33 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+* {
+    box-sizing: border-box;
+}
 .progress-bar {
     position: relative;
     width: 100%;
     height: 30px;
     border: 1px solid black;
     border-radius: 4px;
+    z-index: 1;
     cursor: ew-resize;
     &:hover {
         background-color: #e9e9f6;
+    }
+
+    &-time {
+        position: absolute;
+        top: 0px;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1px 8px;
+        z-index: 0;
+        // pointer-events: none;
+
     }
 
     &-fill {

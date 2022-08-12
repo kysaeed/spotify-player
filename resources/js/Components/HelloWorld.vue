@@ -76,9 +76,6 @@
 
 <script>
 import PlayerProgressBar from './PlayerProgressBar.vue'
-// import { nextTick } from 'vue'
-// import anime from 'animejs'
-
 import {VueSelect} from 'vue-select'
 import 'vue-select/dist/vue-select.css'
 
