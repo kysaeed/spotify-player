@@ -29,7 +29,6 @@ class PlayerController extends Controller
 
     public function trackInfo(Request $request)
     {
-
         $user = Auth::user();
 
         $token = $user->spotifyToken;
@@ -49,24 +48,12 @@ class PlayerController extends Controller
         return $track;
     }
 
-    public function device(Request $request)
+    public function device(Request $request, SpotifyService $spotify)
     {
         $device_id = $request->input('device');
-
         $user = Auth::user();
-        $token = $user->spotifyToken;
-        if (is_null($token)) {
-            return 'has not token';
-        }
+        $devices = $spotify->device($user);
 
-        // $info = json_decode($user->spotify_token, true);
-        $res = Http::withToken($token->access_token)->get('https://api.spotify.com/v1/me/player/devices');
-        if (!$res->successful()) {
-            echo 'get device error.....';
-            dd($res);
-        }
-
-        $devices = json_decode($res->body(), true);
         $device = null;
         foreach ($devices['devices'] as $d) {
             if ($d['id'] === $device_id) {
@@ -75,17 +62,16 @@ class PlayerController extends Controller
         }
 
         if ($device) {
-
-            $res = Http::withToken($token->access_token)->put('https://api.spotify.com/v1/me/player', [
-                'device_ids' => [$device['id']],
-                'play' => false,
-            ]);
-            if (!$res->successful()) {
-                echo 'device change error';
-                dd($res);
-            }
-
+            $spotify->setDevice($user, $device_id);
         }
+
+        return $devices;
+    }
+
+    public function deviceList(Request $request, SpotifyService $spotify)
+    {
+        $user = Auth::user();
+        $devices = $spotify->device($user);
 
         return $devices;
     }

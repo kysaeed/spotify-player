@@ -12,14 +12,9 @@
         </div>
 
         <div class="hello-box-child">
-            <vue-select
-                v-model="selectedDeviceId"
-                :options="options"
-                :searchable="false"
-                :clearable="false"
-            >
-
-            </vue-select>
+            <player-device-list
+                :id-device="idDevice"
+            />
         </div>
 
         <div v-if="item" class="hello-box-child">
@@ -39,15 +34,16 @@
             </div>
 
             <div v-if="state">
-                <div>{{ progress }}</div>
                 <player-progress-bar
                     v-model="progressBar.cycles"
                     :duration="state.duration"
                     :is-pause="isPause"
                     @update="onSeekByBar"
                 />
-                <div>{{ toTime(progressBar.cycles) }} : {{ toTime(state.duration) }}</div>
 
+<!--
+                <div>{{ progress }}</div>
+                <div>{{ toTime(progressBar.cycles) }} : {{ toTime(state.duration) }}</div>
                 <input
                     v-model="progress"
                     class="progress"
@@ -56,6 +52,8 @@
                     :max="state.duration"
                     @change="onSeekDebug"
                 />
+ -->
+
             </div>
         </div>
 
@@ -76,15 +74,15 @@
 
 <script>
 import PlayerProgressBar from './PlayerProgressBar.vue'
-import {VueSelect} from 'vue-select'
-import 'vue-select/dist/vue-select.css'
+import PlayerDeviceList from './Player/PlayerDeviceList.vue'
+
 
 export default {
     name: 'hello-world',
 
     components: {
         PlayerProgressBar,
-        VueSelect,
+        PlayerDeviceList,
     },
 
     methods: {
@@ -182,12 +180,11 @@ export default {
             // Ready
             player.addListener('ready', ({ device_id }) => {
                 console.log('Ready with Device ID', device_id);
-
+                this.idDevice = device_id
                 this.axios.post('/device', {
                     device: device_id,
                 }).then((res) => {
                     console.log(res)
-                    this.startInterval()
                 })
             });
 
@@ -276,10 +273,12 @@ export default {
             currrentAnimatin: null,
             toekn: null,
 
-            selectedDeviceId: '',
-            options: [
-                {label: 'ここに再生デバイス選択を表示', value: '0'},
-            ],
+            idDevice: null,
+
+            // selectedDeviceId: '',
+            // options: [
+            //     {label: 'ここに再生デバイス選択を表示', value: '0'},
+            // ],
 
         }
     },

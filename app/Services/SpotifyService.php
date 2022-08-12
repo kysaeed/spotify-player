@@ -9,7 +9,9 @@ use App\Models\User;
 
 class SpotifyService
 {
-    const baseUrl = 'https://accounts.spotify.com/';
+    const accountBaseUrl = 'https://accounts.spotify.com';
+    const apiBaseUrl = 'https://api.spotify.com/v1';
+    const scope = 'user-read-private user-read-email user-modify-playback-state user-read-playback-state streaming';
 
 
     public function onAuthed(Request $request)
@@ -22,6 +24,7 @@ class SpotifyService
             // return null;
             echo 'state error <br />';
             dd($state, $storedState);
+            return false;
         }
 
         $client_id = config('spotify.client_id');
@@ -30,14 +33,16 @@ class SpotifyService
         $auth = base64_encode($client_id . ':' . $client_secret);
         $res = Http::asForm()->acceptJson()->withHeaders([
             'Authorization' => 'Basic ' . $auth,
-        ])->post('https://accounts.spotify.com/api/token', [
+        ])->post(self::endpoint(self::accountBaseUrl, 'api/token'), [
             'code' => $code,
             'redirect_uri' => url('callback'),
             'grant_type' => 'authorization_code',
         ]);
 
         if (!$res->successful()) {
+            echo 'token: reponse err';
             dd($res);
+            return false;
         }
 
         $info = json_decode($res->body(), true);
@@ -47,10 +52,10 @@ class SpotifyService
         if (!$res->successful()) {
             echo 'token req error <br />';
             dd($res);
+            return false;
         }
 
         $me = json_decode($res->body(), true);
-
         $userId = $me['id'];
 
         $user = User::where('email', $me['email'])->first();
@@ -69,20 +74,20 @@ class SpotifyService
         $user->save();
         $user->spotifyToken()->save($token);
 
+        return true;
     }
 
     public function getLoginParams()
     {
         $state = bin2hex(openssl_random_pseudo_bytes(16));
 
-        $url = self::endpoint('authorize', [
+        $url = self::endpoint(self::accountBaseUrl, 'authorize', [
             'response_type' => 'code',
             'client_id' => config('spotify.client_id'),
-            'scope' => 'user-read-private user-read-email user-modify-playback-state user-read-playback-state streaming',
+            'scope' => self::scope,
             'redirect_uri' => url('callback'),
             'state' => $state,
         ]);
-
 
         return [
             'state' => $state,
@@ -95,7 +100,60 @@ class SpotifyService
     public function isExpired()
     {
 
+
+
         return false;
+    }
+
+    public function device($user)
+    {
+        if (is_null($user)) {
+            return null;
+        }
+
+        $token = $user->spotifyToken;
+        if (is_null($token)) {
+            return null;
+        }
+
+        $res = Http::withToken($token->access_token)->get(self::endpoint(self::apiBaseUrl, 'me/player/devices'));
+        if (!$res->successful()) {
+            echo 'get device error.....';
+            dd($res);
+        }
+
+        $devices = json_decode($res->body(), true);
+
+        return $devices;
+
+        // $device = null;
+        // foreach ($devices['devices'] as $d) {
+        // }
+
+
+        // return $device;
+    }
+
+    public function setDevice($user, $idDevice)
+    {
+        if (is_null($user)) {
+            return null;
+        }
+
+        $token = $user->spotifyToken;
+        if (is_null($token)) {
+            return null;
+        }
+
+        $res = Http::withToken($token->access_token)->put('https://api.spotify.com/v1/me/player', [
+            'device_ids' => [$idDevice],
+            'play' => false,
+        ]);
+        if (!$res->successful()) {
+            return false;
+        }
+
+        return true;
     }
 
     public function refreshAccessToken($user)
@@ -133,9 +191,9 @@ class SpotifyService
         return $tokenInfo->access_token;
     }
 
-    static function endpoint($e, $query = [])
+    static function endpoint($base, $e, $query = [])
     {
-        $url = self::baseUrl . $e;
+        $url = "{$base}/{$e}";
 
         if (!empty($query)) {
             $url .= '?' . http_build_query($query);
