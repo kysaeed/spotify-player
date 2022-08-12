@@ -90,6 +90,8 @@ class SpotifyService
         ];
     }
 
+    // public function
+
     public function isExpired()
     {
 
@@ -98,6 +100,10 @@ class SpotifyService
 
     public function refreshAccessToken($user)
     {
+        if (is_null($user)) {
+            return null;
+        }
+
         $tokenInfo = $user->spotifyToken;
 
         if (is_null($tokenInfo)) {
@@ -117,15 +123,14 @@ class SpotifyService
         ]);
 
         if (!$res->successful()) {
-            Auth::logout();
-            return redirect()->route(('guest'));
+            return null;
         }
 
         $accessTokenInfo = json_decode($res->body(), true);
         $tokenInfo->fill($accessTokenInfo);
         $user->spotifyToken()->save($tokenInfo);
 
-        return $tokenInfo;
+        return $tokenInfo->access_token;
     }
 
     static function endpoint($e, $query = [])

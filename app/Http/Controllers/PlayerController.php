@@ -13,46 +13,12 @@ class PlayerController extends Controller
 
     public function index(Request $request, SpotifyService $spotify)
     {
-
         $user = Auth::user();
         if (!$user) {
             return redirect()->route('guest');
         }
-        $spotifyToken = $user->spotifyToken;
-        if (is_null($spotifyToken)) {
-            return redirect()->route('guest');
-        }
 
-        $spotify->refreshAccessToken($user);
-
-
-        $tokenInfo = json_decode($user->spotify_token, true);
-
-        $client_id = config('spotify.client_id');
-        $client_secret = config('spotify.client_secret');
-        $auth = base64_encode($client_id . ':' . $client_secret);
-        $res = Http::asForm()->acceptJson()->withHeaders([
-            'Authorization' => 'Basic ' . $auth,
-        ])->post('https://accounts.spotify.com/api/token', [
-            'grant_type' => 'refresh_token',
-            'refresh_token' => $spotifyToken->refresh_token,
-        ]);
-
-        if (!$res->successful()) {
-            Auth::logout();
-            return redirect()->route(('guest'));
-        }
-
-        $accessTokenInfo = json_decode($res->body(), true);
-        $spotifyToken->access_token = $accessTokenInfo['access_token'];
-
-
-        $user->spotify_token = json_encode($tokenInfo);
-        $spotifyToken->save();
-
-        return view('content', [
-            'token' => $spotifyToken->access_token,
-        ]);
+        return view('content');
     }
 
     public function guest()
