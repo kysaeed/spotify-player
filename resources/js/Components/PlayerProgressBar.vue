@@ -3,18 +3,13 @@
         ref="progress"
         class="progress-bar"
         @mousedown.left.prevent="onMouseDown"
-        @mouseup.left="onMouseUp"
-        @mousemove="onMouseMove"
-        draggable
     >
-        <div>
-            {{ progress }} / {{this.duration}}
-        </div>
-
+        <div>{{ modelValue }} / {{ duration }}</div>
         <div
             ref="bar"
             class="progress-bar-fill"
-        ></div>
+        >
+        </div>
 
         <div
             v-if="isGrab"
@@ -31,7 +26,7 @@ import anime from 'animejs'
 export default {
     name: 'player-progress-bar',
     props: {
-        progress: {
+        modelValue: {
             type: Number,
             default: 0,
         },
@@ -46,11 +41,15 @@ export default {
     },
 
     watch: {
-        progress(value) {
-            console.log('!!!', value)
+        modelValue(value) {
+            this.animation.pause()
+            this.animation.seek(value)
+            if (!this.isPause) {
+                this.animation.play()
+            }
         },
-        duration(value) {
-            this.setDuration(value)
+        duration() {
+            this.createAnimation()
         },
         isPause(value) {
             if (value) {
@@ -62,24 +61,6 @@ export default {
     },
 
     computed: {
-        barStyle() {
-
-            if (!this.duration) {
-                return {}
-            }
-
-            let width = 0
-            if (this.duration) {
-                width = this.progress / this.duration * 100
-            }
-
-            if (width > 100) {
-                width = 100
-            }
-            return {
-                width: `${width}%`
-            }
-        },
         handleStyle() {
             if (!this.duration) {
                 return {
@@ -101,21 +82,36 @@ export default {
 
         // window.addEventListener('focus', this.adjustPorgress)
 
-        // document.addEventListener('mouseup', this.onMouseUp)
-        // document.addEventListener('mousemove', this.onMouseMove)
-        this.animation = anime({
-            targets: this.$refs.bar,
-            width: [`0%`, '100%'],
-            // round: 1,
-            duration: this.duration,
-            easing: 'linear',
-        })
-        this.seek(this.progress)
+        document.addEventListener('mousemove', this.onMouseMove)
+        document.addEventListener('mouseup', this.onMouseUp)
+
+        this.createAnimation()
+    },
+    beforeDestroy() {
+        document.removeEventListener('mouseup', this.onMouseUp)
+        document.removeEventListener('mousemove', this.onMouseMove)
     },
 
     methods: {
+        createAnimation() {
+            if (this.animation) {
+                this.animation.remove(this.$refs.bar)
+            }
+            this.animation = anime({
+                targets: this.$refs.bar,
+                width: [`0%`, '100%'],
+                // round: 1,
+                duration: this.duration,
+                easing: 'linear',
+                autoplay: false,
+            })
+            this.animation.seek(this.modelValue)
+            if (!this.isPause) {
+                this.animation.play()
+            }
+        },
+
         onMouseDown(e) {
-            console.log('xxxs', e)
             this.isGrab = true
 
             this.currentPoint = {
@@ -124,18 +120,15 @@ export default {
             }
             this.setProgressPosition(this.currentPoint.x)
         },
-        onMouseUp() {
+        onMouseUp(e) {
             if (!this.isGrab) {
                 return
             }
 
+            e.preventDefault()
             this.isGrab = false
-            if (this.duration) {
-                const d = this.duration * (this.to / 100)
-
-                // todo: メンバのanimeを更新
-                this.seek(d)
-            }
+            const d = this.duration * (this.to / 100)
+            this.$emit('update', d)
         },
 
         onMouseMove(e) {
@@ -143,6 +136,7 @@ export default {
                 return
             }
 
+            e.preventDefault()
             this.currentPoint = {
                 x: e.offsetX,
                 y: e.offsetY,
@@ -153,25 +147,6 @@ export default {
         setProgressPosition(x) {
             const r = this.$refs.progress.getBoundingClientRect()
             this.to = x / r.width * 100
-        },
-        setDuration() {
-            this.animation.remove(this.$refs.bar)
-            this.animation = anime({
-                targets: this.$refs.bar,
-                width: [`0%`, '100%'],
-                // round: 1,
-                duration: this.duration,
-                easing: 'linear',
-            })
-
-            this.seek(this.progress)
-        },
-
-        seek(position) {
-            this.animation.pause()
-            this.animation.seek(position)
-            this.animation.play()
-            this.$emit('seek', position)
         },
     },
 

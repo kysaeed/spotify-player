@@ -29,30 +29,12 @@
             <div v-if="state">
                 <div>{{ progress }}</div>
                 <player-progress-bar
-                    :progress="progressBar.cycles"
+                    v-model="progressBar.cycles"
                     :duration="state.duration"
                     :is-pause="isPause"
-                    @seek="onSeekByBar"
+                    @update="onSeekByBar"
                 />
                 <div>{{ toTime(progressBar.cycles) }} : {{ toTime(state.duration) }}</div>
-
-<!--
-
-                <div>{{progressBar.cycles}}</div>
-                {{state.duration}}
-                <input
-                    :value="progressBar.cycles"
-                    class="progress"
-                    type="range"
-                    min="0"
-                    :max="state.duration"
-                    @change="onSeek"
-                />
-                <div>{{ (progressBar.cycles) }} : {{ (state.duration) }}</div>
--->
-
-                <!-- <div>{{ (progress) }} : {{ (state.duration) }}</div> -->
-
 
                 <input
                     v-model="progress"
@@ -88,13 +70,6 @@ import PlayerProgressBar from './PlayerProgressBar.vue'
 export default {
     name: 'hello-world',
 
-    // props: {
-    //     token: {
-    //         type: String,
-    //         default: '',
-    //     },
-    // },
-
     components: {
         PlayerProgressBar,
     },
@@ -115,11 +90,11 @@ export default {
         },
         onSeekByBar(t) {
             this.progress = t
-            console.log('onSeek ******', this.progress)
+            console.log('onSeekByBar ******', this.progress)
             this.player.seek(this.progress)
         },
         onSeekDebug(t) {
-            console.log('onSeek ******', this.progress)
+            console.log('onSeekDebug ******', this.progress)
             this.player.seek(this.progress)
         },
         toTime(ms) {
@@ -152,6 +127,13 @@ export default {
                 console.log('***', s)
             });
 
+        },
+
+        onWindowActive() {
+            this.player.getCurrentState().then((s) => {
+                console.log('#onWindowActive', s)
+                this.progress.cycles = s.position
+            })
         },
 
     },
@@ -202,29 +184,25 @@ export default {
 
                 //player_state_changed
                 player.addListener('player_state_changed', (arg) => {
+                    const s = arg
+                    if (s) {
+                        this.progress = s.position
 
-                    // this.player.getCurrentState().then((s) => {
-                        // window.setTimeout(cb, 1000);
-                        const s = arg
-                        if (s) {
-                            this.progress = s.position
+                        this.state = s
+                        this.progressBar.cycles = s.position
+                        this.isPause = s.paused
 
-                            this.state = s
-                            // this.progressBar.cycles = s.position
-                            this.isPause = s.paused
+                        console.log('player_state_changed', arg);
 
-                            console.log('player_state_changed', arg);
-
-                            this.axios.get('/track-info', {
-                                // device: device_id,
-                            }).then((res) => {
-                                console.log(res.data)
-                                if (res.data) {
-                                    this.item = res.data.item
-                                }
-                            })
-                        }
-                    // });
+                        this.axios.get('/track-info', {
+                            // device: device_id,
+                        }).then((res) => {
+                            console.log(res.data)
+                            if (res.data) {
+                                this.item = res.data.item
+                            }
+                        })
+                    }
 
                 });
 
@@ -249,11 +227,16 @@ export default {
 
         // https://developer.spotify.com/documentation/web-playback-sdk/reference/#event-player-state-changed
 
+
+        window.addEventListener('focus', this.onWindowActive)
+
     },
     beforeDestroy() {
         if (this.player) {
             // this.player.disconnect()
         }
+        window.removeEventListener('focus', this.onWindowActive)
+
     },
     data() {
         const axios = window.axios.create({
@@ -263,7 +246,7 @@ export default {
 
         const progressBar = {
             charged: '0%',
-            cycles: 120
+            cycles: 0,
         }
 
 
