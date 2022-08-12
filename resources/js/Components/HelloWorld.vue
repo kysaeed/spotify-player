@@ -10,7 +10,19 @@
             </button>
             <button @click="next" class="ui-button" >N →</button>
         </div>
-        <div v-if="item" class="hello-box-child hello-box-child">
+
+        <div class="hello-box-child">
+            <vue-select
+                v-model="selectedDeviceId"
+                :options="options"
+                :searchable="false"
+                :clearable="false"
+            >
+
+            </vue-select>
+        </div>
+
+        <div v-if="item" class="hello-box-child">
             <div class="track-info">
                 <div>
                     <h1>{{ item.name }}</h1>
@@ -67,11 +79,15 @@ import PlayerProgressBar from './PlayerProgressBar.vue'
 // import { nextTick } from 'vue'
 // import anime from 'animejs'
 
+import {VueSelect} from 'vue-select'
+import 'vue-select/dist/vue-select.css'
+
 export default {
     name: 'hello-world',
 
     components: {
         PlayerProgressBar,
+        VueSelect,
     },
 
     methods: {
@@ -132,8 +148,13 @@ export default {
         onWindowActive() {
             this.player.getCurrentState().then((s) => {
                 console.log('#onWindowActive', s)
-                this.progress.cycles = s.position
+                this.progressBar.cycles = s.position
             })
+        },
+
+        async onSearch() {
+
+            // return {}
         },
 
     },
@@ -257,6 +278,12 @@ export default {
             progressBar,
             currrentAnimatin: null,
             toekn: null,
+
+            selectedDeviceId: '',
+            options: [
+                {label: 'ここに再生デバイス選択を表示', value: '0'},
+            ],
+
         }
     },
 }
