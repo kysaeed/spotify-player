@@ -19,7 +19,6 @@ class PlayerController extends Controller
         }
 
         ///////
-// dd($spotify->device($user));
 
 
         if (!$user->spotifyToken) {

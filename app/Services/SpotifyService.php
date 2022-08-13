@@ -242,6 +242,28 @@ class SpotifyService
         });
     }
 
+    public function getState($user)
+    {
+        if (is_null($user)) {
+            return null;
+        }
+
+        $token = $user->spotifyToken;
+        if (is_null($token)) {
+            return null;
+        }
+
+        $res = $this->getApiRequest($user, 'me/player');
+        if (!$res->successful()) {
+            echo 'get device error.....';
+            dd($res);
+        }
+
+        $state = json_decode($res->body(), true);
+
+        return $state;
+    }
+
     public function device($user)
     {
         if (is_null($user)) {
@@ -255,7 +277,6 @@ class SpotifyService
 
 
         $res = $this->getApiRequest($user, 'me/player/devices');
-        // $res = Http::withToken($token->access_token)->get(self::endpoint(self::apiBaseUrl, 'me/player/devices'));
         if (!$res->successful()) {
             echo 'get device error.....';
             dd($res);
