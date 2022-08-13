@@ -27,7 +27,7 @@ class LoginControler extends Controller
             return [];
         }
 
-        $acccessToken = $spotify->refreshAccessToken($user);
+        $acccessToken = $spotify->getAccessToken($user);
 
         return [
             'token' => $acccessToken,

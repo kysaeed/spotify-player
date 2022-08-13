@@ -18,6 +18,14 @@ class PlayerController extends Controller
             return redirect()->route('guest');
         }
 
+        ///////
+// dd($spotify->device($user));
+
+
+        if (!$user->spotifyToken) {
+            return redirect()->route('guest');
+        }
+
         return view('content');
     }
 

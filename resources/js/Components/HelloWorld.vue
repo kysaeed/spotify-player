@@ -3,12 +3,6 @@
         <div class="hello-box-child">
             <!-- token: {{token}} -->
             <h1>Laravel Web Player</h1>
-            <button @click="prev" class="ui-button" >← P</button>
-            <button @click="play" class="ui-button" >
-                <span v-if="isPause">▶ Play</span>
-                <span v-if="!isPause"> ‖ Pause</span>
-            </button>
-            <button @click="next" class="ui-button" >N →</button>
         </div>
 
         <div class="hello-box-child">
@@ -31,6 +25,18 @@
                         :src="item.album.images[1].url"
                     />
                 </div>
+            </div>
+        </div>
+        <div v-if="item" class="hello-box-child">
+
+            <div >
+                <button @click="prev" class="ui-button" >← P</button>
+                <button @click="play" class="ui-button" >
+                    <span v-if="isPause">▶ Play</span>
+                    <span v-if="!isPause"> ‖ Pause</span>
+                </button>
+                <button @click="next" class="ui-button" >N →</button>
+
             </div>
 
             <div v-if="state">
