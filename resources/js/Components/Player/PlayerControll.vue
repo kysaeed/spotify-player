@@ -1,12 +1,20 @@
 <template>
     <div >
-        <h1>{{isReady}}</h1>
-        <button @click="prev" class="ui-button" >← P</button>
-        <button @click="play" class="ui-button" >
+        <button
+            class="ui-button"
+            @click="prev"
+        >← P</button>
+        <button
+            class="ui-button"
+            @click="play"
+        >
             <span v-if="isPause">▶ Play</span>
             <span v-if="!isPause"> ‖ Pause</span>
         </button>
-        <button @click="next" class="ui-button" >N →</button>
+        <button
+            class="ui-button"
+            @click="next"
+        >N →</button>
 
     </div>
 </template>
@@ -15,6 +23,10 @@
 export default {
     name: 'player-controll',
     props: {
+        title: {
+            type: String,
+            default: 'Web Player',
+        },
     },
 
     created() {
@@ -32,7 +44,7 @@ export default {
              */
 
             const player = new Spotify.Player({
-                name: 'Laravel Web Player',
+                name: this.title,
                 getOAuthToken: this.requestToken,
                 volume: 0.8
             });
@@ -82,7 +94,9 @@ export default {
             this.player.seek(position)
         },
 
-
+        getCurrentState() {
+            return this.player.getCurrentState()
+        },
         onReady(state) {
             if (!state) {
                 return
@@ -97,7 +111,7 @@ export default {
             })
 
             this.isReady = true
-
+            this.$emit('ready')
         },
         onStateChange(s) {
             if (s) {

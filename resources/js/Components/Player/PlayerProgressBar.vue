@@ -16,7 +16,10 @@
             :style="handleStyle"
         ></div>
 
-        <div class="progress-bar-time">
+        <div
+            v-if="isEnabled"
+            class="progress-bar-time"
+        >
             <div>{{ toTime(this.time.ms) }}</div>
             <div>{{ toTime(this.duration) }}</div>
         </div>
@@ -40,6 +43,10 @@ export default {
         isPause: {
             type: Boolean,
             default: false,
+        },
+        isEnabled: {
+            type: Boolean,
+            default: true,
         },
     },
 
@@ -124,6 +131,11 @@ export default {
         },
 
         onMouseDown(e) {
+            if (!this.isEnabled) {
+                this.isGrab = false
+                return
+            }
+
             this.isGrab = true
 
             const r = this.$refs.progress.getBoundingClientRect()
@@ -139,6 +151,11 @@ export default {
                 return
             }
 
+            if (!this.isEnabled) {
+                this.isGrab = false
+                return
+            }
+
             e.preventDefault()
             this.isGrab = false
             const d = this.duration * (this.to / 100)
@@ -147,6 +164,11 @@ export default {
 
         onMouseMove(e) {
             if (!this.isGrab) {
+                return
+            }
+
+            if (!this.isEnabled) {
+                this.isGrab = false
                 return
             }
 

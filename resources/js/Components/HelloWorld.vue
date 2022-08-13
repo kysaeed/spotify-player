@@ -29,20 +29,21 @@
         </div>
         <player-controll
             ref="playerConroll"
+            :title="'Laravel Web Player'"
             @state-change="onStateChange"
         />
-        <div v-if="item" class="hello-box-child">
+        <div class="hello-box-child">
 
-            <div v-if="state">
+            <!-- <div v-if="state"> -->
                 <player-progress-bar
                     v-model="progressBar.position"
-                    :duration="state.duration"
+                    :duration="duration"
                     :is-pause="isPause"
+                    :is-enabled="!!item"
                     @update="onSeekByBar"
                 />
 
-
-            </div>
+            <!-- </div> -->
         </div>
         <div>
             <button @click="test">Show LOG!</button>
@@ -74,6 +75,7 @@ export default {
             this.state = s
             this.progressBar.position = s.position
             this.isPause = s.paused
+            this.duration = s.duration
 
             console.log('player_state_changed', s);
 
@@ -102,7 +104,7 @@ export default {
         },
 
         onWindowActive() {
-            this.player.getCurrentState().then((s) => {
+            this.$refs.playerConroll.getCurrentState().then((s) => {
                 console.log('#onWindowActive', s)
                 this.progressBar.position = s.position
             })
@@ -128,7 +130,6 @@ export default {
 
 
         const progressBar = {
-            charged: '0%',
             position: 0,
         }
 
@@ -142,13 +143,8 @@ export default {
             isPause: true,
             progressBar,
             token: null,
-
+            duration: 0,
             idDevice: null,
-
-            // selectedDeviceId: '',
-            // options: [
-            //     {label: 'ここに再生デバイス選択を表示', value: '0'},
-            // ],
 
         }
     },
