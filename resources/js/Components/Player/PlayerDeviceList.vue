@@ -1,20 +1,21 @@
 <template>
     <div>
-        id: {{idDevice}} / {{selectedDeviceId}}
         <vue-select
-            v-model="selectedDeviceId"
+            v-model="selectedDevice"
             :loading="isLoading"
             :options="options"
             :searchable="false"
             :clearable="false"
             @open="onOpen"
+            @option:selected="onSelect"
         >
-
-<!--
             <template v-slot:no-options="{ search, searching }">
-                {{search}} / {{searching}}
+                なし
             </template>
- -->
+
+            <template #option="{ label }">
+                <h3 style="margin: 0">{{ label }}</h3>
+            </template>
 
         </vue-select>
     </div>
@@ -26,14 +27,19 @@ import 'vue-select/dist/vue-select.css'
 
 export default {
     props: {
-        idDevice: {
-            type: String,
+        device: {
+            type: Object,
             defualt: null,
         },
     },
     name: 'player-device-list',
     components: {
         VueSelect,
+    },
+    watch: {
+        device(value) {
+            this.selectedDevice = _.cloneDeep(value)
+        },
     },
 
     mounted() {
@@ -53,7 +59,8 @@ export default {
                     res.data.devices.forEach((d) => {
                         this.options.push({
                             label: d.name,
-                            value: d.id,
+                            type: d.type,
+                            code: d.id,
                         })
 
                     })
@@ -74,6 +81,19 @@ export default {
             // }, 2000)
 
         },
+
+        onSelect(e) {
+console.log('selected', this.selectedDevice.code)
+
+            this.axios.post('/device', {
+                device: this.selectedDevice.code,
+            }).then((res) => {
+                // console.log(res)
+                this.axios.post('/state', {}).then((res) => {
+                    console.log('/state', res.data)
+                })
+            })
+        },
     },
     data() {
         const axios = window.axios.create({
@@ -82,7 +102,7 @@ export default {
 
         return {
             isLoading: false,
-            selectedDeviceId: this.idDevice,
+            selectedDevice: _.cloneDeep(this.device),
             options: [],
             axios,
         }

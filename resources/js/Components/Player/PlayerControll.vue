@@ -107,11 +107,16 @@ export default {
             this.axios.post('/device', {
                 device: state.device_id,
             }).then((res) => {
-                console.log(res)
+                // console.log(res)
+                this.axios.post('/state', {}).then((res) => {
+                    console.log('/state', res.data)
+                    this.$emit('state-change', res.data)
+                })
+
             })
 
             this.isReady = true
-            this.$emit('ready')
+            this.$emit('ready', this.idDevice)
         },
         onStateChange(s) {
             if (s) {
@@ -122,7 +127,7 @@ export default {
                 this.isPause = s.paused
 
                 console.log('PlyaerController: player_state_changed', s);
-                this.$emit('state-change', s)
+                this.$emit('web-player-state-change', s)
 
                 // this.axios.get('/track-info', {
                 //     // device: device_id,

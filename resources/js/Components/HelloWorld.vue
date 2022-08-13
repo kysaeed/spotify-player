@@ -7,7 +7,7 @@
 
         <div class="hello-box-child">
             <player-device-list
-                :id-device="idDevice"
+                :device="device"
             />
         </div>
 
@@ -30,7 +30,9 @@
         <player-controll
             ref="playerConroll"
             :title="'Laravel Web Player'"
+            @ready="onReady"
             @state-change="onStateChange"
+            @web-player-state-change="onWebPlayerStateChange"
         />
         <div class="hello-box-child">
 
@@ -68,7 +70,23 @@ export default {
     },
 
     methods: {
-        onStateChange(s) {
+        onReady(idWebPlayerDevice) {
+            this.idWebPlayerDevice = idWebPlayerDevice
+        },
+        onStateChange(state) {
+            console.log('onStateChange ****', state)
+            if (!state) {
+                return
+            }
+            if (state.device) {
+                this.device = {
+                    code: state.device.id,
+                    label: state.device.name,
+                    type: state.device.type,
+                }
+            }
+        },
+        onWebPlayerStateChange(s) {
             // console.log(s)
             this.progress = s.position
 
@@ -144,7 +162,8 @@ export default {
             progressBar,
             token: null,
             duration: 0,
-            idDevice: null,
+            idWebPlayerDevice: null,
+            device: null,
 
         }
     },
