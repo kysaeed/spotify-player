@@ -24,6 +24,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function() {
 
     Route::post('device', 'PlayerController@device')->name('device');
     Route::post('device/list', 'PlayerController@device')->name('device.list');
+    Route::post('state', 'PlayerController@state')->name('state');
 
     Route::get('track-info', 'PlayerController@trackInfo')->name('track-info');
 

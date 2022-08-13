@@ -9,9 +9,13 @@
             :clearable="false"
             @open="onOpen"
         >
+
+<!--
             <template v-slot:no-options="{ search, searching }">
-                {{search}}/{{searching}}
+                {{search}} / {{searching}}
             </template>
+ -->
+
         </vue-select>
     </div>
 </template>

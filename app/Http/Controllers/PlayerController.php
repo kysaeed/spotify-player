@@ -55,6 +55,15 @@ class PlayerController extends Controller
         return $track;
     }
 
+
+    public function state(Request $request, SpotifyService $spotify)
+    {
+        $user = Auth::user();
+        $state = $spotify->getState($user);
+
+        return $state;
+    }
+
     public function device(Request $request, SpotifyService $spotify)
     {
         $device_id = $request->input('device');
