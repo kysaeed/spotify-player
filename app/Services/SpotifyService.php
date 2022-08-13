@@ -108,7 +108,7 @@ class SpotifyService
         }
 
         if ($this->isExpired($user)) {
-            return $this->refreshAccessToken();
+            return $this->refreshAccessToken($user);
         }
 
         return $token->access_token;
