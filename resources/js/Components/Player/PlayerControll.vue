@@ -1,5 +1,8 @@
 <template>
     <div >
+        <div v-if="state">
+            web player active: {{ isActive }} ({{state.playback_id}})
+        </div>
         <button
             class="ui-button"
             @click="prev"
@@ -20,6 +23,8 @@
 </template>
 
 <script>
+import RemotePlayer from './RemotePlayer.js'
+
 export default {
     name: 'player-controll',
     props: {
@@ -72,8 +77,8 @@ export default {
             });
 
             //player_state_changed
-            player.addListener('player_state_changed', (arg) => {
-                this.onStateChange(arg)
+            player.addListener('player_state_changed', (state) => {
+                this.onStateChange(state)
             });
 
             player.connect();
@@ -81,7 +86,8 @@ export default {
         },
 
         play() {
-            this.player.togglePlay();
+            // this.player.togglePlay();
+            this.remotePlayer.togglePlay()
         },
         next() {
             this.player.nextTrack();
@@ -112,33 +118,38 @@ export default {
                     console.log('/state', res.data)
                     this.$emit('state-change', res.data)
                 })
-
+                this.$emit('ready', this.idDevice)
+                this.isReady = true
             })
 
-            this.isReady = true
-            this.$emit('ready', this.idDevice)
         },
         onStateChange(s) {
-            if (s) {
-                this.progress = s.position
-
-                this.state = s
-                // this.progressBar.position = s.position
-                this.isPause = s.paused
-
-                console.log('PlyaerController: player_state_changed', s);
-                this.$emit('web-player-state-change', s)
-
-                // this.axios.get('/track-info', {
-                //     // device: device_id,
-                // }).then((res) => {
-                //     console.log(res.data)
-                //     if (res.data) {
-                //         this.item = res.data.item
-                //         this.$emit('state-chage', s)
-                //     }
-                // })
+            if (!s) {
+                return
             }
+
+            this.progress = s.position
+
+            this.state = s
+            // this.progressBar.position = s.position
+            this.isPause = s.paused
+
+
+            const idPlayback = s.playback_id ?? ''
+            this.isActive = (idPlayback !== '')
+
+            console.log('PlyaerController: player_state_changed', s);
+            this.$emit('web-player-state-change', s)
+
+            // this.axios.get('/track-info', {
+            //     // device: device_id,
+            // }).then((res) => {
+            //     console.log(res.data)
+            //     if (res.data) {
+            //         this.item = res.data.item
+            //         this.$emit('state-chage', s)
+            //     }
+            // })
         },
 
         requestToken(cb) {
@@ -157,6 +168,9 @@ export default {
             responseType: 'json',
         });
 
+        const remotePlayer = new RemotePlayer(axios)
+        // remotePlayer.foo()
+
         return {
             axios,
             isReady: false,
@@ -165,6 +179,8 @@ export default {
             isPause: true,
             item: null,
             state: null,
+            isActive: false,
+            remotePlayer,
         }
     },
 }

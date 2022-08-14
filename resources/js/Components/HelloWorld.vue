@@ -47,10 +47,6 @@
 
             <!-- </div> -->
         </div>
-        <div>
-            <button @click="test">Show LOG!</button>
-        </div>
-
     </div>
 </template>
 
@@ -112,13 +108,6 @@ export default {
             this.progress = t
             console.log('onSeekByBar ******', this.progress)
             this.$refs.playerConroll.seek(this.progress)
-        },
-
-        test() {
-            this.player.getCurrentState().then((s) => {
-                console.log('***', s)
-            });
-
         },
 
         onWindowActive() {

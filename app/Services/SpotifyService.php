@@ -16,9 +16,10 @@ class SpotifyService
 
     public function onAuthed(Request $request)
     {
+        $storedState = $request->session()->pull('state');
+
         $code = $request->input('code');
         $state = $request->input('state');
-        $storedState = $request->session()->pull('state');
 
         if ($state !== $storedState) {
             // return null;
@@ -230,7 +231,7 @@ class SpotifyService
         }
 
         return self::retry(function() use ($user, $access_token, $apiName, $query, $data) {
-            $res = Http::withToken($access_token)->put(self::endpoint(self::apiBaseUrl, $apiName, $query), $data);
+            $res = Http::withToken($access_token)->put(self::endpoint(self::apiBaseUrl, $apiName, $query), (Object)$data);
             if (!$res->successful()) {
                 if ($res->status() === 401) {
                     $access_token = $this->refreshAccessToken($user);
@@ -303,12 +304,73 @@ class SpotifyService
         ]);
 
         if (!$res->successful()) {
+            echo 'set dieve err !';
+            dd($res);
             return false;
         }
 
         return true;
     }
 
+    public function togglePlay($user)
+    {
+        if (is_null($user)) {
+            return null;
+        }
+
+        $token = $user->spotifyToken;
+        if (is_null($token)) {
+            return null;
+        }
+
+        $state = $this->getState($user);
+        $device = $state['device'] ?? null;
+        $isPlaying = $state['is_playing'] ?? false;
+
+        if ($isPlaying) {
+            return $this->pause($user);
+        }
+        return $this->play($user);
+
+    }
+
+    public function play($user)
+    {
+        if (is_null($user)) {
+            return null;
+        }
+
+        $token = $user->spotifyToken;
+        if (is_null($token)) {
+            return null;
+        }
+
+        $res = $this->putApiRequest($user, 'me/player/play', [], []);
+        if (!$res->successful()) {
+            dd($res->body());
+            return false;
+        }
+        return true;
+    }
+
+    public function pause($user)
+    {
+        if (is_null($user)) {
+            return null;
+        }
+
+        $token = $user->spotifyToken;
+        if (is_null($token)) {
+            return null;
+        }
+
+        $res = $this->putApiRequest($user, 'me/player/pause', [], []);
+        if (!$res->successful()) {
+            dd($res);
+            return false;
+        }
+        return true;
+    }
 
 
     static function endpoint($base, $e, $query = [])

@@ -28,4 +28,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function() {
 
     Route::get('track-info', 'PlayerController@trackInfo')->name('track-info');
 
+    Route::post('player/play', 'PlayerController@play')->name('player.play');
+    Route::post('player/next', 'PlayerController@next')->name('player.next');
+    Route::post('player/prev', 'PlayerController@prev')->name('player.prev');
+
 });

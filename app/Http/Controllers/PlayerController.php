@@ -91,4 +91,21 @@ class PlayerController extends Controller
 
         return $devices;
     }
+
+    public function play(Request $request, SpotifyService $spotify)
+    {
+        $user = Auth::user();
+        return $spotify->togglePlay($user);
+
+    }
+
+    public function next(Request $request, SpotifyService $spotify)
+    {
+
+    }
+
+    public function prev(Request $request, SpotifyService $spotify)
+    {
+
+    }
 }
