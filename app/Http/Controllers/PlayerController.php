@@ -55,6 +55,19 @@ class PlayerController extends Controller
         return $track;
     }
 
+    public function audioAnaysis(Request $request, SpotifyService $spotify, $idTrack)
+    {
+        $user = Auth::user();
+
+        $user = Auth::user();
+        $state = $spotify->getAudioAnalysis($user, $idTrack);
+
+        return $state;
+
+
+
+dd('audioAnaysis');
+    }
 
     public function state(Request $request, SpotifyService $spotify)
     {

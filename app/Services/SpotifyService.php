@@ -265,6 +265,30 @@ class SpotifyService
         return $state;
     }
 
+    public function getAudioAnalysis($user, $idTrack /* = '11dFghVXANMlKmJXsNCbNl' */)
+    {
+        if (is_null($user)) {
+            return null;
+        }
+
+        $token = $user->spotifyToken;
+        if (is_null($token)) {
+            return null;
+        }
+
+        //
+        $apiName = "audio-analysis/{$idTrack}";
+
+        $res = $this->getApiRequest($user, $apiName);
+        if (!$res->successful()) {
+            echo 'get audio-analysis error.....';
+            dd($res);
+        }
+
+        return json_decode($res->body(), true);
+
+    }
+
     public function device($user)
     {
         if (is_null($user)) {

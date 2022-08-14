@@ -86,8 +86,7 @@ export default {
         },
 
         play() {
-            // this.player.togglePlay();
-            this.remotePlayer.togglePlay()
+            this.player.togglePlay();
         },
         next() {
             this.player.nextTrack();

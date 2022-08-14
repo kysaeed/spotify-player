@@ -27,6 +27,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function() {
     Route::post('state', 'PlayerController@state')->name('state');
 
     Route::get('track-info', 'PlayerController@trackInfo')->name('track-info');
+    Route::get('audio-analysis/{idTrack}', 'PlayerController@audioAnaysis')->name('audio-analysis');
 
     Route::post('player/play', 'PlayerController@play')->name('player.play');
     Route::post('player/next', 'PlayerController@next')->name('player.next');

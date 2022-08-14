@@ -11,6 +11,15 @@
             />
         </div>
 
+        <div>
+
+            <visualize
+                :position="progressBar.position"
+                :bars="bars"
+                :is-pause="isPause"
+            />
+        </div>
+
         <div v-if="item" class="hello-box-child">
             <div class="track-info">
                 <div>
@@ -27,25 +36,23 @@
                 </div>
             </div>
         </div>
-        <player-controll
-            ref="playerConroll"
-            :title="'Laravel Web Player'"
-            @ready="onReady"
-            @state-change="onStateChange"
-            @web-player-state-change="onWebPlayerStateChange"
-        />
         <div class="hello-box-child">
+            <player-controll
+                ref="playerConroll"
+                :title="'Laravel Web Player'"
+                @ready="onReady"
+                @state-change="onStateChange"
+                @web-player-state-change="onWebPlayerStateChange"
+            />
 
-            <!-- <div v-if="state"> -->
-                <player-progress-bar
-                    v-model="progressBar.position"
-                    :duration="duration"
-                    :is-pause="isPause"
-                    :is-enabled="!!item"
-                    @update="onSeekByBar"
-                />
+            <player-progress-bar
+                v-model="progressBar.position"
+                :duration="duration"
+                :is-pause="isPause"
+                :is-enabled="!!item"
+                @update="onSeekByBar"
+            />
 
-            <!-- </div> -->
         </div>
     </div>
 </template>
@@ -54,6 +61,7 @@
 import PlayerProgressBar from './Player/PlayerProgressBar.vue'
 import PlayerControll from './Player/PlayerControll.vue'
 import PlayerDeviceList from './Player/PlayerDeviceList.vue'
+import Visualize from './Player/Visualize.vue'
 
 
 export default {
@@ -63,6 +71,7 @@ export default {
         PlayerControll,
         PlayerProgressBar,
         PlayerDeviceList,
+        Visualize,
     },
 
     methods: {
@@ -96,12 +105,18 @@ export default {
             this.axios.get('/track-info', {
                 // device: device_id,
             }).then((res) => {
-                console.log(res.data)
+                console.log('track-info ******', res.data)
                 if (res.data) {
                     this.item = res.data.item
                     // this.$emit('state-chage', s)
+
+                    this.axios.get(`audio-analysis/${this.item.id}`).then((res) => {
+                        console.log('audio', res)
+                        this.bars = res.data.bars
+                    });
                 }
             })
+
         },
 
         onSeekByBar(t) {
@@ -153,7 +168,7 @@ export default {
             duration: 0,
             idWebPlayerDevice: null,
             device: null,
-
+            bars: null,
         }
     },
 }
