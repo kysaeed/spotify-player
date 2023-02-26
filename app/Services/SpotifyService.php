@@ -25,7 +25,7 @@ class SpotifyService
             // return null;
             echo 'state error <br />';
             dd($state, $storedState);
-            return false;
+            return null;
         }
 
         $client_id = config('spotify.client_id');
@@ -43,7 +43,7 @@ class SpotifyService
         if (!$res->successful()) {
             echo 'token: reponse err';
             dd($res);
-            return false;
+            return null;
         }
 
         $info = json_decode($res->body(), true);
@@ -76,7 +76,7 @@ class SpotifyService
         $user->save();
         $user->spotifyToken()->save($token);
 
-        return true;
+        return $user;
     }
 
     public function getLoginParams()

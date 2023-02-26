@@ -36,7 +36,11 @@ class LoginControler extends Controller
 
     public function callback(Request $request, SpotifyService $spotify)
     {
-        $spotify->onAuthed($request);
+        $user = $spotify->onAuthed($request);
+        if ($user) {
+            Auth::login($user);
+        }
+
         return redirect()->route('top');
     }
 
