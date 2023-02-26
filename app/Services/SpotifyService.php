@@ -68,6 +68,7 @@ class SpotifyService
         $user->email = $me['email'];
         $user->password = $userId;
 
+        $user->key = $me['id'];
 
         $token = $user->spotifyToken()->firstOrNew();
         $token->fill($info);
